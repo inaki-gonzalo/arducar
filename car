@@ -1,0 +1,137 @@
+int pinI1=8;//define I1 interface
+int pinI2=11;//define I2 interface 
+int speedpinA=9;//enable motor A
+int pinI3=12;//define I3 interface 
+int pinI4=13;//define I4 interface 
+int speedpinB=10;//enable motor B
+int spead =75;//define the spead of motor
+ long previousMillis = 0;
+ int steps=0;
+ int incomingByte = 0;
+
+
+void setup() {
+  // put your setup code here, to run once:
+ // Serial.begin(9600);
+  pinMode(pinI1,OUTPUT);
+  pinMode(pinI2,OUTPUT);
+  pinMode(speedpinA,OUTPUT);
+  pinMode(pinI3,OUTPUT);
+  pinMode(pinI4,OUTPUT);
+  pinMode(speedpinB,OUTPUT); 
+   Serial.begin(9600);  
+  Serial.println("The car is booting"); 
+ 
+  
+  
+
+}
+void stop1(){
+     digitalWrite(speedpinA,LOW);// Unenble the pin, to stop the motor. this should be done to avid damaging the motor. 
+     digitalWrite(speedpinB,LOW);
+     digitalWrite(pinI4,LOW);//turn DC Motor B move clockwise
+     digitalWrite(pinI3,LOW);
+     digitalWrite(pinI2,LOW);//turn DC Motor A move anticlockwise
+     digitalWrite(pinI1,LOW);
+     delay(1000000);
+    
+  }
+void accelerate(int time,int spead){
+     if (millis() - previousMillis < time) {
+      
+     digitalWrite(pinI4,HIGH);//turn DC Motor B move clockwise
+     digitalWrite(pinI3,LOW);
+     digitalWrite(pinI2,LOW);//turn DC Motor A move anticlockwise
+     digitalWrite(pinI1,LOW); 
+     //analogWrite(speedpinA,spead+10);//input a simulation value to set the speed
+     analogWrite(speedpinB,spead+10);
+     delay(10);
+    //  analogWrite(speedpinA,spead-10);//input a simulation value to set the speed
+     analogWrite(speedpinB,spead-10);
+     }
+     else{ previousMillis = millis();   // remember the last time
+   
+         steps++;
+         }
+  }
+  void reverse(int time,int spead){
+     if (millis() - previousMillis < time) {
+   //analogWrite(speedpinA,spead);//input a simulation value to set the speed
+     analogWrite(speedpinB,spead);
+     digitalWrite(pinI4,LOW);//turn DC Motor B move clockwise
+     digitalWrite(pinI3,HIGH);
+     digitalWrite(pinI2,LOW);//turn DC Motor A move anticlockwise
+     digitalWrite(pinI1,LOW); 
+     
+     }
+      else{ previousMillis = millis();   // remember the last time
+   
+         steps++;
+         }
+  }
+  void turnLeft(int time,int spead){
+      if (millis() - previousMillis < time) {
+     digitalWrite(pinI4,HIGH);//turn DC Motor B move clockwise
+     digitalWrite(pinI3,LOW);
+     digitalWrite(pinI2,HIGH);//turn DC Motor A move anticlockwise
+     digitalWrite(pinI1,LOW); 
+     analogWrite(speedpinA,255);//input a simulation value to set the speed
+     analogWrite(speedpinB,spead+10);
+     delay(10);
+    //  analogWrite(speedpinA,spead-10);//input a simulation value to set the speed
+     analogWrite(speedpinB,spead-10);
+    
+      }
+       else{ previousMillis = millis();   // remember the last time
+   
+         steps++;
+         }
+    
+  }
+  void turnRight(int time,int spead  ){
+    if (millis() - previousMillis < time) {
+      digitalWrite(pinI4,HIGH);//turn DC Motor B move clockwise
+      digitalWrite(pinI3,LOW);
+      digitalWrite(pinI2,LOW);//turn DC Motor A move anticlockwise
+      digitalWrite(pinI1,HIGH); 
+      analogWrite(speedpinA,255);//input a simulation value to set the speed
+      analogWrite(speedpinB,spead+10);
+      delay(10);
+      //  analogWrite(speedpinA,spead-10);//input a simulation value to set the speed
+      analogWrite(speedpinB,spead-10);
+     
+     }
+       else{ 
+         previousMillis = millis();   // remember the last time
+         steps++;
+      }
+  }
+  void exit(){
+Serial.println("Exiting..."); 
+while(1) {
+ delay(100000000);
+  }
+
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  accelerate(1000,95);
+ // delay(1000);
+  //stop1();
+   if (Serial.available() > 0) {
+		// read the incoming byte:
+		incomingByte = Serial.read();
+
+		// say what you got:
+		Serial.print("I received: ");
+		Serial.println(incomingByte, DEC);
+
+	}
+if (incomingByte==120){
+  stop1();
+  exit();
+}
+   
+
+}
