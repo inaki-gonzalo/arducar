@@ -1,0 +1,71 @@
+# /bin/bash
+terminal=$(ls /dev/ttyACM* 2>/dev/null)
+counter=0
+while [[ -z "$terminal" ]]
+do
+	echo "connect the Arduino"
+	sleep 3
+	terminal=$(ls /dev/ttyACM* 2>/dev/null)
+	(( counter++ ))
+	if [[ "$counter" -gt 3 ]]
+	then 
+		echo "Timed out, exiting"
+		exit 1
+	fi
+done
+echo "Connected at $terminal"
+echo -n "Checking Permissions"
+if [[ ! -z $(ls -l "$terminal" |egrep "$USER") ]]  
+then
+	echo "....OK"
+else
+	echo "....Changing"
+	sudo chown "$USER" "$terminal"
+fi	
+done=1
+echo "Ready"
+while [[ ! "$done" == "0" ]]
+do
+read -sn1 var
+if [[ "$var" == '' ]]
+then
+	read -sn2 temp
+	var="$var$temp"
+	case "$var" in
+	'[A')
+		 echo 'up'
+		 echo -n "A" >"$terminal"
+	;;
+	'[B')
+                 echo 'down'
+		echo -n "B" >"$terminal"
+        ;;
+	'[C')
+                 echo 'right'
+		echo -n "C" >"$terminal"
+        ;;
+	'[D')
+                 echo 'left'
+		echo -n "D" >"$terminal"
+        ;;
+
+
+	*)
+		echo "unknown"
+	;;
+	esac
+else
+	case "$var" in
+        'x')
+                 echo 'exiting'
+		echo -n "x" >"$terminal"
+
+		done=0
+        ;;
+	 *)
+		echo "not spcial char"
+        ;;
+
+	esac
+fi
+done
