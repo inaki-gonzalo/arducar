@@ -8,6 +8,9 @@ int spead =75;//define the spead of motor
  long previousMillis = 0;
  int steps=0;
  int incomingByte = 0;
+ int pinPowerPlus=3;
+int pinPowerMinus=2;
+boolean forward=true;
 
 
 void setup() {
@@ -19,92 +22,87 @@ void setup() {
   pinMode(pinI3,OUTPUT);
   pinMode(pinI4,OUTPUT);
   pinMode(speedpinB,OUTPUT); 
+   pinMode(pinPowerPlus,OUTPUT);
+  pinMode(pinPowerMinus,OUTPUT);
+ digitalWrite(pinPowerPlus,HIGH);   
+ 
+ digitalWrite(pinPowerMinus,LOW);  
    Serial.begin(9600);  
+   
   Serial.println("The car is booting"); 
  
   
   
 
 }
-void stop1(){
-     digitalWrite(speedpinA,LOW);// Unenble the pin, to stop the motor. this should be done to avid damaging the motor. 
+void turnoff(){
+   digitalWrite(speedpinA,LOW);// Unenble the pin, to stop the motor. this should be done to avid damaging the motor. 
      digitalWrite(speedpinB,LOW);
      digitalWrite(pinI4,LOW);//turn DC Motor B move clockwise
      digitalWrite(pinI3,LOW);
      digitalWrite(pinI2,LOW);//turn DC Motor A move anticlockwise
      digitalWrite(pinI1,LOW);
+  
+}
+void stop1(){
+    
      delay(1000000);
     
   }
 void accelerate(int time,int spead){
-     if (millis() - previousMillis < time) {
+    
       
      digitalWrite(pinI4,HIGH);//turn DC Motor B move clockwise
      digitalWrite(pinI3,LOW);
      digitalWrite(pinI2,LOW);//turn DC Motor A move anticlockwise
      digitalWrite(pinI1,LOW); 
      //analogWrite(speedpinA,spead+10);//input a simulation value to set the speed
-     analogWrite(speedpinB,spead+10);
-     delay(10);
-    //  analogWrite(speedpinA,spead-10);//input a simulation value to set the speed
-     analogWrite(speedpinB,spead-10);
-     }
-     else{ previousMillis = millis();   // remember the last time
-   
-         steps++;
-         }
+     analogWrite(speedpinB,spead);
+      delay(time);
+      turnoff();
   }
   void reverse(int time,int spead){
-     if (millis() - previousMillis < time) {
-   //analogWrite(speedpinA,spead);//input a simulation value to set the speed
-     analogWrite(speedpinB,spead);
      digitalWrite(pinI4,LOW);//turn DC Motor B move clockwise
      digitalWrite(pinI3,HIGH);
      digitalWrite(pinI2,LOW);//turn DC Motor A move anticlockwise
      digitalWrite(pinI1,LOW); 
-     
-     }
-      else{ previousMillis = millis();   // remember the last time
-   
-         steps++;
-         }
+      analogWrite(speedpinB,spead);
+     delay(time);
+      turnoff();
   }
   void turnLeft(int time,int spead){
-      if (millis() - previousMillis < time) {
-     digitalWrite(pinI4,HIGH);//turn DC Motor B move clockwise
-     digitalWrite(pinI3,LOW);
+     if (forward){ 
+       digitalWrite(pinI4,HIGH);//turn DC Motor B move clockwise
+       digitalWrite(pinI3,LOW);
+     }
+     else{
+         digitalWrite(pinI4,LOW);//turn DC Motor B move clockwise
+       digitalWrite(pinI3,HIGH);
+     }
      digitalWrite(pinI2,HIGH);//turn DC Motor A move anticlockwise
      digitalWrite(pinI1,LOW); 
      analogWrite(speedpinA,255);//input a simulation value to set the speed
-     analogWrite(speedpinB,spead+10);
-     delay(10);
-    //  analogWrite(speedpinA,spead-10);//input a simulation value to set the speed
-     analogWrite(speedpinB,spead-10);
-    
-      }
-       else{ previousMillis = millis();   // remember the last time
-   
-         steps++;
-         }
+     analogWrite(speedpinB,spead);
+   delay(time);
+      turnoff();
     
   }
   void turnRight(int time,int spead  ){
-    if (millis() - previousMillis < time) {
-      digitalWrite(pinI4,HIGH);//turn DC Motor B move clockwise
-      digitalWrite(pinI3,LOW);
+   
+       if (forward){ 
+       digitalWrite(pinI4,HIGH);//turn DC Motor B move clockwise
+       digitalWrite(pinI3,LOW);
+     }
+     else{
+         digitalWrite(pinI4,LOW);//turn DC Motor B move clockwise
+       digitalWrite(pinI3,HIGH);
+     }
       digitalWrite(pinI2,LOW);//turn DC Motor A move anticlockwise
       digitalWrite(pinI1,HIGH); 
       analogWrite(speedpinA,255);//input a simulation value to set the speed
-      analogWrite(speedpinB,spead+10);
-      delay(10);
-      //  analogWrite(speedpinA,spead-10);//input a simulation value to set the speed
-      analogWrite(speedpinB,spead-10);
-     
-     }
-       else{ 
-         previousMillis = millis();   // remember the last time
-         steps++;
-      }
+      analogWrite(speedpinB,spead);
+    delay(time);
+      turnoff();
   }
   void exit(){
 Serial.println("Exiting..."); 
@@ -116,7 +114,7 @@ while(1) {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  accelerate(1000,95);
+ // accelerate(1000,95);
  // delay(1000);
   //stop1();
    if (Serial.available() > 0) {
@@ -126,12 +124,31 @@ void loop() {
 		// say what you got:
 		Serial.print("I received: ");
 		Serial.println(incomingByte, DEC);
+      switch (incomingByte) {
+          case 65:    // your hand is on the sensor
+            accelerate(30,90);
+            forward=true;
+            break;
+          case 66:    // your hand is close to the sensor
+           reverse(30,90);
+           forward=false;
+            break;
+          case 67:    // your hand is a few inches from the sensor
+           turnRight(30,90);
+           
+            break;
+          case 68:    // your hand is nowhere near the sensor
+           turnLeft(30,100);
+            
+            break;
+          case 120:    // your hand is nowhere near the sensor
+            stop1();
+            exit();
+            break;
+          } 
 
 	}
-if (incomingByte==120){
-  stop1();
-  exit();
-}
+
    
 
 }
