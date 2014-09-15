@@ -1,39 +1,68 @@
+/*
+  Software serial multple serial test
+ 
+ Receives from the hardware serial, sends to software serial.
+ Receives from software serial, sends to hardware serial.
+ 
+ The circuit: 
+ * RX is digital pin 10 (connect to TX of other device)
+ * TX is digital pin 11 (connect to RX of other device)
+ 
+ Note:
+ Not all pins on the Mega and Mega 2560 support change interrupts, 
+ so only the following can be used for RX: 
+ 10, 11, 12, 13, 50, 51, 52, 53, 62, 63, 64, 65, 66, 67, 68, 69
+ 
+ Not all pins on the Leonardo support change interrupts, 
+ so only the following can be used for RX: 
+ 8, 9, 10, 11, 14 (MISO), 15 (SCK), 16 (MOSI).
+ 
+ created back in the mists of time
+ modified 25 May 2012
+ by Tom Igoe
+ based on Mikal Hart's example
+ 
+ This example code is in the public domain.
+ 
+ */
+#include <SoftwareSerial.h>
+
 int pinI1=8;//define I1 interface
 int pinI2=11;//define I2 interface 
 int speedpinA=9;//enable motor A
 int pinI3=12;//define I3 interface 
 int pinI4=13;//define I4 interface 
 int speedpinB=10;//enable motor B
-int spead =75;//define the spead of motor
- long previousMillis = 0;
- int steps=0;
- int incomingByte = 0;
- int pinPowerPlus=3;
-int pinPowerMinus=2;
+int pwmspeed =100;//define the spead of motor
 boolean forward=true;
 
-
-void setup() {
-  // put your setup code here, to run once:
- // Serial.begin(9600);
+SoftwareSerial mySerial(6,7); // RX, TX
+int power =4;
+int ground=5;
+int response;
+void setup()  
+{
   pinMode(pinI1,OUTPUT);
   pinMode(pinI2,OUTPUT);
   pinMode(speedpinA,OUTPUT);
   pinMode(pinI3,OUTPUT);
   pinMode(pinI4,OUTPUT);
   pinMode(speedpinB,OUTPUT); 
-   pinMode(pinPowerPlus,OUTPUT);
-  pinMode(pinPowerMinus,OUTPUT);
- digitalWrite(pinPowerPlus,HIGH);   
- 
- digitalWrite(pinPowerMinus,LOW);  
-   Serial.begin(9600);  
-   
-  Serial.println("The car is booting"); 
- 
-  
-  
+  // Open serial communications and wait for port to open:
+  Serial.begin(9600);
+  //while (!Serial) {
+   // ; // wait for serial port to connect. Needed for Leonardo only
+  //}
+  pinMode(power, OUTPUT);   // digital sensor is on digital pin 2
+    digitalWrite(power, HIGH);
+pinMode(ground, OUTPUT);   // digital sensor is on digital pin 2
+    digitalWrite(ground, LOW);
 
+  Serial.println("Goodnight moon!");
+
+  // set the data rate for the SoftwareSerial port
+  mySerial.begin(9600);
+  mySerial.println("Hello, world?");
 }
 void turnoff(){
    digitalWrite(speedpinA,LOW);// Unenble the pin, to stop the motor. this should be done to avid damaging the motor. 
@@ -112,43 +141,52 @@ while(1) {
 
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
- // accelerate(1000,95);
- // delay(1000);
-  //stop1();
-   if (Serial.available() > 0) {
-		// read the incoming byte:
-		incomingByte = Serial.read();
-
-		// say what you got:
-		Serial.print("I received: ");
-		Serial.println(incomingByte, DEC);
-      switch (incomingByte) {
-          case 65:    // your hand is on the sensor
-            accelerate(30,90);
+void loop() // run over and over
+{
+  if (mySerial.available()){
+    response=mySerial.read();
+    Serial.println(response);
+   // if (response== "ü"){Serial.println("Accelerating");}
+     switch (response) {
+          case 252:    // your hand is on the sensor
+            Serial.println("Accelerating");
+           accelerate(30,pwmspeed);
             forward=true;
             break;
-          case 66:    // your hand is close to the sensor
-           reverse(30,90);
+          case 248:    // your hand is close to the sensor
+            Serial.println("Reverse");
+           reverse(30,pwmspeed);
            forward=false;
             break;
-          case 67:    // your hand is a few inches from the sensor
-           turnRight(30,90);
+          case 254:    // your hand is a few inches from the sensor
+           Serial.println("Right");
+           turnRight(30,pwmspeed-10);
+           
            
             break;
-          case 68:    // your hand is nowhere near the sensor
-           turnLeft(30,100);
+          case 255:    // your hand is nowhere near the sensor
+          Serial.println("Left");
+           turnLeft(30,pwmspeed-10);
             
             break;
-          case 120:    // your hand is nowhere near the sensor
-            stop1();
-            exit();
+             case 244:    // your hand is nowhere near the sensor
+            Serial.println("increasing spead");
+            pwmspeed++;
+            break;
+             case 236:    // your hand is nowhere near the sensor
+            Serial.println("decreasing spead");
+            pwmspeed--;
+            break;
+          case 240:    // your hand is nowhere near the sensor
+            Serial.println("stop");
+            //stop1();
+           // exit();
             break;
           } 
 
-	}
-
-   
-
+	
+    
+  }
+  
 }
+

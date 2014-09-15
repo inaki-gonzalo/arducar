@@ -1,28 +1,12 @@
 # /bin/bash
-terminal=$(ls /dev/ttyACM* 2>/dev/null)
+trap '' SIGINT
+terminal=/dev/rfcomm0
+#$(ls /dev/ttyACM* 2>/dev/null)
+xset r rate 30 30
 counter=0
-while [[ -z "$terminal" ]]
-do
-	echo "connect the Arduino"
-	sleep 3
-	terminal=$(ls /dev/ttyACM* 2>/dev/null)
-	(( counter++ ))
-	if [[ "$counter" -gt 3 ]]
-	then 
-		echo "Timed out, exiting"
-		exit 1
-	fi
-done
+
 echo "Connected at $terminal"
 echo -n "Checking Permissions"
-if [[ ! -z $(ls -l "$terminal" |egrep "$USER") ]]  
-then
-	echo "....OK"
-else
-	echo "....Changing"
-	sudo chown "$USER" "$terminal"
-fi	
-done=1
 echo "Ready"
 while [[ ! "$done" == "0" ]]
 do
@@ -34,19 +18,19 @@ then
 	case "$var" in
 	'[A')
 		 echo 'up'
-		 echo -n "A" >"$terminal"
+		 echo -n "AAAA" >"$terminal"
 	;;
 	'[B')
                  echo 'down'
-		echo -n "B" >"$terminal"
+		echo -n "AAAAA" >"$terminal"
         ;;
 	'[C')
                  echo 'right'
-		echo -n "C" >"$terminal"
+		echo -n "AAA" >"$terminal"
         ;;
 	'[D')
                  echo 'left'
-		echo -n "D" >"$terminal"
+		echo -n "x" >"$terminal"
         ;;
 
 
@@ -58,9 +42,20 @@ else
 	case "$var" in
         'x')
                  echo 'exiting'
-		echo -n "x" >"$terminal"
+		echo -n "aaaaaa" >"$terminal"
+		xset r rate 200 20
 
 		done=0
+        ;;
+	'a')
+                 echo 'increasing speed'
+		echo -n '@@#3##' >"$terminal"
+		
+        ;;
+	's')
+                 echo 'decreasing speed'
+		echo -n '@@#3#???' >"$terminal"
+		
         ;;
 	 *)
 		echo "not spcial char"
